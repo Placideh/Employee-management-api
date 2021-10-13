@@ -8,12 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.placideh.employees.model.Employee;
 import com.placideh.employees.repository.EmployeeRepository;
@@ -22,20 +17,21 @@ import com.placideh.employees.repository.EmployeeRepository;
 @RequestMapping("/api/employees")
 public class EmployeeResource {
 	private static Map<String,String> errors;
-	@Autowired
-	private EmployeeRepository employeeRepo;
-	
+    @Autowired
+    private EmployeeRepository employeeRepo;
+
 	@GetMapping(" ")
 	public ResponseEntity<List<Employee>> getAllEmployees() {
 		List<Employee>employees=employeeRepo.findAll();
-		
+
 		return new ResponseEntity<>(employees,HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/register")
 	public ResponseEntity<Map<String,String>> registerEmployee(@RequestBody Employee employee ){
 		Map<String,String> map=new HashMap<>();
 		employee.setCode(randomString());
+
 		employee.setCreatedDate(LocalDate.now());
 		
 		employeeRepo.save(employee);
@@ -51,7 +47,8 @@ public class EmployeeResource {
 		Employee emp=employeeRepo.findByNationalId(employee.getNationalId());
 		if(emp!=null) {
 			map.put("message", "employee updated");
-			employeeRepo.updateEmployee(employee,employee.getNationalId());
+			int result=employeeRepo.updateEmployee(employee,employee.getNationalId());
+			if(result>0) System.out.println("updated");
 			return new ResponseEntity<Map<String,String>>(map,HttpStatus.OK);
 			
 		}
@@ -60,7 +57,19 @@ public class EmployeeResource {
 		
 		
 	}
-	
+
+	@DeleteMapping("/{code}")
+	public ResponseEntity<Map<String,String>> removeEmployee(@PathVariable String code){
+		Employee employee=employeeRepo.findByCode(code);
+		Map<String ,String>map=new HashMap<>();
+		if(employee!=null){
+			employeeRepo.delete(employee);
+			map.put("message","Employee deleted");
+			return  new ResponseEntity<>(map,HttpStatus.OK);
+		}
+		map.put("message","Employee Not Found");
+		return new ResponseEntity<>(map,HttpStatus.NOT_FOUND);
+	}
 	
 	
 	private  String randomString() {
@@ -97,11 +106,11 @@ public class EmployeeResource {
 			errors.put("dob", "The age are not eligible");
 		}
 		
-		if(!employee.getNationalId().trim().matches("[0-9]+{16}")) {
+		if(!employee.getNationalId().trim().matches("[0-9]{16}")) {
 			
 			errors.put("nationalId","invalid national Id it must contains 16 digits");
 		}
-		if(!employee.getPhoneNumber().matches("[+250]{4}[78||79||72||73]{2}[0-9]+{7}")) {
+		if(!employee.getPhoneNumber().matches("[+250]{4}[78||79||72||73]{2}[0-9]{7}")) {
 			errors.put("phoneNumber", "Phone number must be Rwandan number");
 		}
 		if(employee.getEmail().isEmpty()) {

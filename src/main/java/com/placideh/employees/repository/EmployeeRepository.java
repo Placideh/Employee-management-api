@@ -17,11 +17,15 @@ public interface EmployeeRepository extends JpaRepository<Employee,Integer>{
 	@Modifying
 	@Transactional
 	@Query(
-			value="UPDATE employee_table  SET employee_name=?1 "
-					+ ",phone_number=?2,position=?3,status=?4,date_of_birth=?5 WHERE national_id=?6",
+//			value="UPDATE employee_table  SET employee_name=?1 "
+//					+ ",phone_number=?2,position=?3,status=?4,date_of_birth=?5 WHERE national_id=?6",
+
+
+			value="UPDATE employee_table SET ",
 			nativeQuery=true
 			
 			)
 	int updateEmployee(Employee employee,String national_id);
+	Employee findByCode(String code);
 
 }
