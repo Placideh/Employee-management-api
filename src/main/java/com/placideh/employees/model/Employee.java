@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name="employee_table",
 		uniqueConstraints = { @UniqueConstraint(
 					name="email_unique",
-					columnNames="eamil_address"
+					columnNames="email_address"
 				),
 				@UniqueConstraint(
 						name="employee_code",
@@ -35,7 +35,7 @@ public class Employee {
 	private String name;
 	@Id
 	@Column(name="national_id")
-	private Integer nationalId;
+	private String nationalId;
 	@Column(name="employee_code")
 	private String code;
 	@Column(name="phone_number")
@@ -43,7 +43,7 @@ public class Employee {
 	@Column(name="email_address",
 			nullable=false
 			)
-	private String eamil;
+	private String email;
 	@Column(name="date_of_birth")
 	private LocalDate dob;
 	private Status status;
