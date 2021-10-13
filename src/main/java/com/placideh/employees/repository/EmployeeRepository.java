@@ -1,8 +1,11 @@
 package com.placideh.employees.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
+import com.placideh.employees.model.Position;
+import com.placideh.employees.model.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,20 +15,25 @@ import com.placideh.employees.model.Employee;
 
 public interface EmployeeRepository extends JpaRepository<Employee,Integer>{
 	
-	Employee findByNationalId(String nationalId); 
+	Employee findByNationalId(String nationalId);
+
+	Employee findByCode(String code);
+	//search by Employee name
+	@Query("FROM Employee WHERE name=?1")
+		List<Employee> searchByName(String name);
+	//search By Employee Position
+	@Query("FROM Employee WHERE position=?1")
+	List<Employee> searchByPosition(Position position);
+	//Search By PhoneNumber
+	@Query("FROM Employee WHERE phoneNumber=?1")
+	Employee searchByPhoneNumber(String phoneNumber);
+	//search By code
+	@Query("FROM Employee WHERE code=?1")
+	Employee searchByCode(String code);
 	//update employee
 	@Modifying
 	@Transactional
-	@Query(
-//			value="UPDATE employee_table  SET employee_name=?1 "
-//					+ ",phone_number=?2,position=?3,status=?4,date_of_birth=?5 WHERE national_id=?6",
-
-
-			value="UPDATE employee_table SET ",
-			nativeQuery=true
-			
-			)
-	int updateEmployee(Employee employee,String national_id);
-	Employee findByCode(String code);
+	@Query("UPDATE Employee  SET name=?1,phoneNumber=?2,position=?3,status=?4 ,dob=?5  WHERE nationalId=?6")
+	int updateEmployee(String name, String phoneNumber, Position position, Status status, LocalDate dob, String nationalId);
 
 }

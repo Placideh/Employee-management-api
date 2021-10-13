@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.placideh.employees.model.Position;
+import com.placideh.employees.model.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.placideh.employees.model.Employee;
 import com.placideh.employees.repository.EmployeeRepository;
-
+/*
+* https://gitlab.com/task-force-challenge/backend-v2/-/blob/main/README.md
+* */
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeResource {
@@ -47,8 +51,15 @@ public class EmployeeResource {
 		Employee emp=employeeRepo.findByNationalId(employee.getNationalId());
 		if(emp!=null) {
 			map.put("message", "employee updated");
-			int result=employeeRepo.updateEmployee(employee,employee.getNationalId());
-			if(result>0) System.out.println("updated");
+			String name=employee.getName();
+			String phoneNumber=employee.getPhoneNumber();
+			Position position=employee.getPosition();
+			Status status=employee.getStatus();
+			LocalDate dob=employee.getDob();
+			String nationalId=emp.getNationalId();
+
+			int result=employeeRepo.updateEmployee(name,phoneNumber,position,status,dob,nationalId);
+			if(result>0) ;
 			return new ResponseEntity<Map<String,String>>(map,HttpStatus.OK);
 			
 		}
@@ -70,6 +81,22 @@ public class EmployeeResource {
 		map.put("message","Employee Not Found");
 		return new ResponseEntity<>(map,HttpStatus.NOT_FOUND);
 	}
+	@GetMapping("/position/{position}")
+	public ResponseEntity<List<Employee>> getEmployeesByPosition(@PathVariable Position position){
+		List<Employee> employees=employeeRepo.searchByPosition(position);
+		return new ResponseEntity<>(employees,HttpStatus.OK);
+	}
+	@GetMapping("/code/{code}")
+    public ResponseEntity<Employee> getEmployeesByCode(@PathVariable String code){
+	    Employee employee=employeeRepo.searchByCode(code);
+	    return new ResponseEntity<>(employee,HttpStatus.OK);
+    }
+    @GetMapping("/phone/{phoneNumber}")
+    public ResponseEntity<Employee> getEmployeeByPhone(@PathVariable String phoneNumber){
+        Employee employee=employeeRepo.searchByPhoneNumber(phoneNumber);
+        return new ResponseEntity<>(employee,HttpStatus.OK);
+    }
+
 	
 	
 	private  String randomString() {
