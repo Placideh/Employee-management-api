@@ -7,6 +7,8 @@ import java.util.Map;
 
 import com.placideh.employees.model.Position;
 import com.placideh.employees.model.Status;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,18 +21,19 @@ import com.placideh.employees.repository.EmployeeRepository;
 * */
 @RestController
 @RequestMapping("/api/employees")
+@Api(value = "Employee Endpoints",description = "Employee Rest Endpoints")
 public class EmployeeResource {
 	private static Map<String,String> errors;
     @Autowired
     private EmployeeRepository employeeRepo;
 
+    @ApiOperation(value="Returns List of Employees Details")
 	@GetMapping(" ")
 	public ResponseEntity<List<Employee>> getAllEmployees() {
 		List<Employee>employees=employeeRepo.findAll();
-
 		return new ResponseEntity<>(employees,HttpStatus.OK);
 	}
-
+    @ApiOperation(value = "register a single Employee and returns a confirmation Message to that registered user")
 	@PostMapping("/register")
 	public ResponseEntity<Map<String,String>> registerEmployee(@RequestBody Employee employee ){
 		Map<String,String> map=new HashMap<>();
@@ -43,7 +46,7 @@ public class EmployeeResource {
 		return new ResponseEntity<Map<String,String>>(map,HttpStatus.CREATED);
 		
 	}
-	
+	@ApiOperation(value = "updates a user by only five fields:name,phoneNumber,position,status and date of birth")
 	@PutMapping("/update")
 	public ResponseEntity<Map<String,String>> updateEmployee(@RequestBody Employee employee){
 		
@@ -68,7 +71,7 @@ public class EmployeeResource {
 		
 		
 	}
-
+    @ApiOperation(value = "removes an Employee by using His/Her generated Code")
 	@DeleteMapping("/{code}")
 	public ResponseEntity<Map<String,String>> removeEmployee(@PathVariable String code){
 		Employee employee=employeeRepo.findByCode(code);
@@ -81,16 +84,19 @@ public class EmployeeResource {
 		map.put("message","Employee Not Found");
 		return new ResponseEntity<>(map,HttpStatus.NOT_FOUND);
 	}
+	@ApiOperation(value = "retrieve a list of employees whith the same position")
 	@GetMapping("/position/{position}")
 	public ResponseEntity<List<Employee>> getEmployeesByPosition(@PathVariable Position position){
 		List<Employee> employees=employeeRepo.searchByPosition(position);
 		return new ResponseEntity<>(employees,HttpStatus.OK);
 	}
+	@ApiOperation(value = "returns a single Employee by search using His/Her Code")
 	@GetMapping("/code/{code}")
     public ResponseEntity<Employee> getEmployeesByCode(@PathVariable String code){
 	    Employee employee=employeeRepo.searchByCode(code);
 	    return new ResponseEntity<>(employee,HttpStatus.OK);
     }
+    @ApiOperation(value = "returns a single Employee by search using His/Her phone Number")
     @GetMapping("/phone/{phoneNumber}")
     public ResponseEntity<Employee> getEmployeeByPhone(@PathVariable String phoneNumber){
         Employee employee=employeeRepo.searchByPhoneNumber(phoneNumber);

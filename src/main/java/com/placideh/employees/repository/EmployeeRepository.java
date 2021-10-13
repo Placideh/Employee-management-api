@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.placideh.employees.model.Employee;
 
-public interface EmployeeRepository extends JpaRepository<Employee,Integer>{
+public interface EmployeeRepository extends JpaRepository<Employee,String>{
 	
 	Employee findByNationalId(String nationalId);
 
