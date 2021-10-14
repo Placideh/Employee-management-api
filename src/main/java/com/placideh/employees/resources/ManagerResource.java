@@ -2,6 +2,7 @@ package com.placideh.employees.resources;
 
 
 import com.placideh.employees.exception.ManagerAuthException;
+import com.placideh.employees.mails.EmailSenderService;
 import com.placideh.employees.model.Constants;
 import com.placideh.employees.model.Manager;
 import com.placideh.employees.model.Position;
@@ -28,7 +29,8 @@ import java.util.regex.Pattern;
 public class ManagerResource {
     @Autowired
     ManagerRepository managerRepo;
-
+    @Autowired
+    private EmailSenderService service;
 
 
     @PostMapping("/register")
@@ -46,8 +48,8 @@ public class ManagerResource {
         manager.setPassword(hashedPassword);
         String email=manager.getConfirmEmail();
         if(!email.trim().isEmpty())email=email.toLowerCase();
-        if (!pattern.matcher(email).matches())
-            throw new ManagerAuthException("Invalid email format");
+//        if (!pattern.matcher(email).matches())
+//            throw new ManagerAuthException("Invalid email format");
         Manager manager1=managerRepo.findByEmail(email);
         if (manager1!=null)
             throw new ManagerAuthException("Email is already registered");
@@ -87,13 +89,14 @@ public class ManagerResource {
     public ResponseEntity<Map<String,String>> passwordReset(@PathVariable String email){
         Pattern pattern=Pattern.compile("^(.+)@(.)$");
         if(!email.trim().isEmpty())email=email.toLowerCase();
-        if (!pattern.matcher(email).matches())
-                throw new ManagerAuthException("Invalid email format");
+//        if (!pattern.matcher(email).matches())
+//                throw new ManagerAuthException("Invalid email format");
         Manager manager=managerRepo.findByEmail(email);
         if (manager == null)
                 throw new ManagerAuthException("Email is is not registered");
         Map<String,String>map=new HashMap<>();
-        map.put("message","reset code was sent to your email");
+        triggerTheResetLink(email);
+        map.put("message","reset Link was sent to your email");
         return new ResponseEntity<>(map,HttpStatus.GONE);
 
     }
@@ -148,5 +151,12 @@ public class ManagerResource {
         map.put("token", token);
         return map;
 
+    }
+    private void triggerTheResetLink(String email){
+        service.sendCommunicationEmail(
+                email,
+                "Password Reset Link : http://localhost:8080/api/admins/reset",
+                "Password Reset"
+        );
     }
 }

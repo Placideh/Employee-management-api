@@ -1,14 +1,19 @@
 package com.placideh.employees;
 
 import com.placideh.employees.filters.AuthFilter;
+import com.placideh.employees.mails.EmailSenderService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 
 @SpringBootApplication
 public class EmployeesManagementApiApplication {
-
+	@Autowired
+	private EmailSenderService service;
 	public static void main(String[] args) {
 		SpringApplication.run(EmployeesManagementApiApplication.class, args);
 	}
@@ -22,5 +27,13 @@ public class EmployeesManagementApiApplication {
 		return registrationBean;
 
 	}
+//	@EventListener(ApplicationReadyEvent.class)
+//	private void triggerTheEmailMsg(){
+//		service.sendCommunicationEmail(
+//				"h.uwizeyeplacide@gmail.com",
+//				"Welcome to Our Company you are respected ",
+//				"Welcome in Placideh Employees Company"
+//		);
+//	}
 
 }

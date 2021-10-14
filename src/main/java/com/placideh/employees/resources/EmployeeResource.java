@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.placideh.employees.mails.EmailSenderService;
 import com.placideh.employees.model.Position;
 import com.placideh.employees.model.Status;
 import io.swagger.annotations.Api;
@@ -26,6 +27,8 @@ public class EmployeeResource {
 	private static Map<String,String> errors;
     @Autowired
     private EmployeeRepository employeeRepo;
+    @Autowired
+    private EmailSenderService service;
 
     @ApiOperation(value="Returns List of Employees Details")
 	@GetMapping(" ")
@@ -42,6 +45,7 @@ public class EmployeeResource {
 		employee.setCreatedDate(LocalDate.now());
 		
 		employeeRepo.save(employee);
+		triggerTheEmailMsg(employee.getEmail());
 		map.put("message", "employee created");
 		return new ResponseEntity<Map<String,String>>(map,HttpStatus.CREATED);
 		
@@ -164,6 +168,13 @@ public class EmployeeResource {
 		
 		
 	}
+	private void triggerTheEmailMsg(String email){
+        service.sendCommunicationEmail(
+                email,
+                "Welcome to Our Company you are respected ",
+                "Welcome in Placideh Employees Company"
+        );
+    }
 	
 	
 }
