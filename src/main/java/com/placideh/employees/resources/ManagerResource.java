@@ -40,14 +40,14 @@ public class ManagerResource {
         manager.setCode(randomString());
 
         manager.setCreatedDate(LocalDate.now());
-
+        manager.setDob(LocalDate.parse(manager.getDob().toString()));
         manager.setPosition(Position.MANAGER);
         String hashedPassword= BCrypt.hashpw(manager.getPassword(),BCrypt.gensalt(10));
         manager.setPassword(hashedPassword);
-        String email=manager.getEmail();
+        String email=manager.getConfirmEmail();
         if(!email.trim().isEmpty())email=email.toLowerCase();
-//        if (!pattern.matcher(email).matches())
-//            throw new ManagerAuthException("Invalid email format");
+        if (!pattern.matcher(email).matches())
+            throw new ManagerAuthException("Invalid email format");
         Manager manager1=managerRepo.findByEmail(email);
         if (manager1!=null)
             throw new ManagerAuthException("Email is already registered");
@@ -56,13 +56,14 @@ public class ManagerResource {
         return new ResponseEntity<Map<String,String>>(map, HttpStatus.CREATED);
     }
     @PostMapping("/login")
+    @ApiOperation(value = "a Manager logs in by providing email and password")
     public ResponseEntity<Map<String,String>> managerLogin(@RequestBody Map<String,Object> manager){
         String email=(String)manager.get("email");
         String password=(String)manager.get("password");
         try{
             if(!email.trim().isEmpty())email=email.toLowerCase();
             Manager manager1=managerRepo.findByEmail(email);
-            System.out.println("Manager1:"+manager1);
+
             if(!BCrypt.checkpw(password,manager1.getPassword())){
                 throw new ManagerAuthException("Invalid email/password");
             }
@@ -76,9 +77,40 @@ public class ManagerResource {
 
     }
     @GetMapping("")
+    @ApiOperation(value = "returns a list of all managers")
     public ResponseEntity<List<Manager>> getManagers(){
         List<Manager> managers=managerRepo.findAll();
         return new ResponseEntity<>(managers,HttpStatus.OK);
+    }
+    @PostMapping("/reset/{email}")
+    @ApiOperation(value = "Manager password reset by providing a valid registered email")
+    public ResponseEntity<Map<String,String>> passwordReset(@PathVariable String email){
+        Pattern pattern=Pattern.compile("^(.+)@(.)$");
+        if(!email.trim().isEmpty())email=email.toLowerCase();
+        if (!pattern.matcher(email).matches())
+                throw new ManagerAuthException("Invalid email format");
+        Manager manager=managerRepo.findByEmail(email);
+        if (manager == null)
+                throw new ManagerAuthException("Email is is not registered");
+        Map<String,String>map=new HashMap<>();
+        map.put("message","reset code was sent to your email");
+        return new ResponseEntity<>(map,HttpStatus.GONE);
+
+    }
+    @PutMapping("/reset")
+    @ApiOperation(value = "Reset password by providing new password and confirm that password")
+    public ResponseEntity<Map<String,String>> passwordResetConfirmation(@RequestBody Map<String,Object> manager){
+        String email=(String)manager.get("email");
+        String newPassword=(String)manager.get("newPassword");
+        String confirmNewPassword=(String)manager.get("confirmNewPassword");
+        if(!newPassword.trim().equals(confirmNewPassword.trim()))
+            throw new ManagerAuthException("password must match");
+        Manager manager1=managerRepo.findByEmail(email.trim());
+        String hashedPassword= BCrypt.hashpw(newPassword,BCrypt.gensalt(10));
+        if (manager1!=null)managerRepo.updateManagerPassword(hashedPassword,email);
+        Map<String,String>map=new HashMap<>();
+        map.put("message","password reseted");
+        return new ResponseEntity<>(map,HttpStatus.OK);
     }
 
 
@@ -108,11 +140,8 @@ public class ManagerResource {
                 .claim("name",manager.getName())
                 .claim("phoneNumber",manager.getPhoneNumber())
                 .claim("position",manager.getPosition())
-                .claim("password",manager.getPassword())
                 .claim("code",manager.getCode())
-//                .claim("createdDate",manager.getCreatedDate())
                 .claim("confirmEmail",manager.getConfirmEmail())
-//                .claim("dob",manager.getDob())
                 .claim("status",manager.getStatus())
                 .compact();
         Map<String ,String> map=new HashMap<>();
