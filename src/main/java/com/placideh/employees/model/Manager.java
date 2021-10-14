@@ -25,7 +25,7 @@ import javax.persistence.UniqueConstraint;
         }
 
 )
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class Manager extends Employee {
     @Column(name = "email_confirmation")
     private String confirmEmail;
