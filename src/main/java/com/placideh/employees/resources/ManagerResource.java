@@ -5,10 +5,10 @@ import com.placideh.employees.exception.EmployeeExistException;
 import com.placideh.employees.exception.EmployeeInputException;
 import com.placideh.employees.exception.EmployeeNotFoundException;
 import com.placideh.employees.mails.EmailSenderService;
-import com.placideh.employees.model.Constants;
-import com.placideh.employees.model.Manager;
-import com.placideh.employees.model.Position;
+import com.placideh.employees.model.*;
+import com.placideh.employees.repository.EmployeeRepository;
 import com.placideh.employees.repository.ManagerRepository;
+import com.placideh.employees.upload.UploadFile;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.swagger.annotations.ApiOperation;
@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -32,9 +33,13 @@ public class ManagerResource {
     @Autowired
     ManagerRepository managerRepo;
     @Autowired
+    private EmployeeRepository employeeRepo;
+    @Autowired
     private EmailSenderService service;
     private final Logger LOGGER= LoggerFactory.getLogger(ManagerResource.class);
     private static Map<String,String> errors;
+    @Autowired
+    private UploadFile uploadFile;
 
     @PostMapping("/register")
     @ApiOperation(value = "records a new Manager with Position of MANAGER")
@@ -88,8 +93,6 @@ public class ManagerResource {
     @PostMapping("/reset/{email}")
     @ApiOperation(value = "Manager password reset by providing a valid registered email")
     public ResponseEntity<Map<String,String>> passwordReset(@PathVariable String email) throws EmployeeInputException, EmployeeNotFoundException {
-        if(checkEmail(email));
-        email=email.toLowerCase();
         Manager manager=managerRepo.findByEmail(email);
         if (manager == null)throw new EmployeeNotFoundException("Email is is not registered");
         Map<String,String>map=new HashMap<>();
@@ -108,7 +111,7 @@ public class ManagerResource {
         String confirmNewPassword=(String)manager.get("confirmNewPassword");
         if(!newPassword.trim().equals(confirmNewPassword.trim()))
             throw new EmployeeInputException("password must match");
-        if(checkEmail(email));
+
         Manager manager1=managerRepo.findByEmail(email);
         if(manager1==null)throw new EmployeeNotFoundException("Manager with "+email+" Not exist");
         String hashedPassword= BCrypt.hashpw(newPassword,BCrypt.gensalt(10));
@@ -118,6 +121,26 @@ public class ManagerResource {
         LOGGER.info("Manager with this Email:"+email+"Password Was reseted ");
         return new ResponseEntity<>(map,HttpStatus.OK);
     }
+    @PutMapping("/suspend/{email}")
+    @ApiOperation(value = "Manager Can suspend The Employee via this api ")
+    public ResponseEntity<Map<String,String>>suspendEmployee(@PathVariable String email)
+        throws EmployeeInputException,EmployeeNotFoundException{
+        Employee employee=employeeRepo.findByEmail(email);
+        if(employee==null)throw new EmployeeNotFoundException("Employee with "+email+" Not Found");
+        employee.setStatus(Status.INACTIVE);
+        employeeRepo.updateEmployee(employee.getName(),
+                employee.getPhoneNumber(), employee.getPosition(),
+                employee.getStatus(),employee.getDob(), employee.getNationalId());
+        Map<String,String>map=new HashMap<>();
+        map.put("message","Employee Suspended");
+        return new ResponseEntity<>(map,HttpStatus.OK);
+    }
+    @PostMapping("/upload")
+    @ApiOperation(value = "Upload a list of Employees and sends back Email to each Employee registered")
+    public List<Map<String,String>>uploadEmployees(@RequestParam("file")MultipartFile file) throws Exception {
+        return uploadFile.upload(file);
+    }
+
 
 
 
@@ -221,39 +244,5 @@ public class ManagerResource {
 
 
     }
-    private Boolean checkEmail(String email) throws EmployeeInputException{
-        Integer atSign=email.indexOf("@");
-        Integer emailLength=email.length();
-        String textAfterAtSign=email.substring(atSign+1,emailLength);
-        Integer dotSign=textAfterAtSign.indexOf(".");
-        Integer total=atSign+dotSign;
-        Boolean result=(total-atSign)<2;
-        String textAfterDotSign=textAfterAtSign.substring(dotSign+1, textAfterAtSign.length());
-        Boolean afterDotSignCheck=textAfterDotSign.length()<=1;
-        if(email.isEmpty()) {
-            errors.put("email", "Email must be filled");
-            throw new EmployeeInputException(errors.get("email"));
-        }else {
-            if(!email.contains(".")||!email.contains("@")){
-                errors.put("email","Email must contains @ and . sign");
-                throw new EmployeeInputException(errors.get("email"));
-            }
-            if(result){
-                errors.put("email","Email must contain dot after @ sign ");
-                throw new EmployeeInputException(errors.get("email"));
 
-            }
-
-            if(afterDotSignCheck){
-                errors.put("email", "Email must contain a top level domain");
-                throw new EmployeeInputException(errors.get("email"));
-
-            }
-        }
-        if(errors.isEmpty()) {
-            return true;
-        }
-        throw new EmployeeInputException("one or more fields contains an error");
-
-    }
 }

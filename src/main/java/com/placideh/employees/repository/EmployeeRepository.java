@@ -16,7 +16,7 @@ import com.placideh.employees.model.Employee;
 public interface EmployeeRepository extends JpaRepository<Employee,String>{
 	
 	Employee findByNationalId(String nationalId);
-
+	Employee findByEmail(String email);
 	Employee findByCode(String code);
 	//search by Employee name
 	@Query("FROM Employee WHERE name=?1")
