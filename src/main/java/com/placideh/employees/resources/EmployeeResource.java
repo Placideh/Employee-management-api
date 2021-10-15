@@ -10,6 +10,8 @@ import com.placideh.employees.model.Position;
 import com.placideh.employees.model.Status;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +31,12 @@ public class EmployeeResource {
     private EmployeeRepository employeeRepo;
     @Autowired
     private EmailSenderService service;
-
+	private final Logger LOGGER= LoggerFactory.getLogger(EmployeeResource.class);
     @ApiOperation(value="Returns List of Employees Details")
 	@GetMapping(" ")
 	public ResponseEntity<List<Employee>> getAllEmployees() {
 		List<Employee>employees=employeeRepo.findAll();
+		LOGGER.info("Getting All Employees");
 		return new ResponseEntity<>(employees,HttpStatus.OK);
 	}
     @ApiOperation(value = "register a single Employee and returns a confirmation Message to that registered user")
@@ -47,6 +50,7 @@ public class EmployeeResource {
 		employeeRepo.save(employee);
 		triggerTheEmailMsg(employee.getEmail());
 		map.put("message", "employee created");
+		LOGGER.info("Employee with this Email:"+employee.getEmail()+"Is Registered");
 		return new ResponseEntity<Map<String,String>>(map,HttpStatus.CREATED);
 		
 	}
@@ -67,6 +71,7 @@ public class EmployeeResource {
 
 			int result=employeeRepo.updateEmployee(name,phoneNumber,position,status,dob,nationalId);
 			if(result>0) ;
+			LOGGER.info("Manager with this Email:"+emp.getEmail()+"Updates Some Information");
 			return new ResponseEntity<Map<String,String>>(map,HttpStatus.OK);
 			
 		}
@@ -83,27 +88,32 @@ public class EmployeeResource {
 		if(employee!=null){
 			employeeRepo.delete(employee);
 			map.put("message","Employee deleted");
+			LOGGER.info("Employee with this Email:"+employee.getEmail()+"Deleted Success");
 			return  new ResponseEntity<>(map,HttpStatus.OK);
 		}
 		map.put("message","Employee Not Found");
+		LOGGER.info("Employee with this Email:"+employee.getEmail()+"Deletion Failed");
 		return new ResponseEntity<>(map,HttpStatus.NOT_FOUND);
 	}
 	@ApiOperation(value = "retrieve a list of employees whith the same position")
 	@GetMapping("/position/{position}")
 	public ResponseEntity<List<Employee>> getEmployeesByPosition(@PathVariable Position position){
 		List<Employee> employees=employeeRepo.searchByPosition(position);
+		LOGGER.info(" retrieve a list of employees whith the same position");
 		return new ResponseEntity<>(employees,HttpStatus.OK);
 	}
 	@ApiOperation(value = "returns a single Employee by search using His/Her Code")
 	@GetMapping("/code/{code}")
     public ResponseEntity<Employee> getEmployeesByCode(@PathVariable String code){
 	    Employee employee=employeeRepo.searchByCode(code);
+		LOGGER.info(" retrieve employee info by Employee Code");
 	    return new ResponseEntity<>(employee,HttpStatus.OK);
     }
     @ApiOperation(value = "returns a single Employee by search using His/Her phone Number")
     @GetMapping("/phone/{phoneNumber}")
     public ResponseEntity<Employee> getEmployeeByPhone(@PathVariable String phoneNumber){
         Employee employee=employeeRepo.searchByPhoneNumber(phoneNumber);
+		LOGGER.info(" retrieve employee info by Phone Number");
         return new ResponseEntity<>(employee,HttpStatus.OK);
     }
 

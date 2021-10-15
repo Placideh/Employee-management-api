@@ -11,6 +11,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.swagger.annotations.ApiOperation;
 import org.mindrot.jbcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,7 @@ public class ManagerResource {
     ManagerRepository managerRepo;
     @Autowired
     private EmailSenderService service;
+    private final Logger LOGGER= LoggerFactory.getLogger(ManagerResource.class);
 
 
     @PostMapping("/register")
@@ -55,6 +58,7 @@ public class ManagerResource {
             throw new ManagerAuthException("Email is already registered");
         managerRepo.save(manager);
         map.put("message", "manager recorded");
+        LOGGER.info("Saving a Manager Record of ManagerResource");
         return new ResponseEntity<Map<String,String>>(map, HttpStatus.CREATED);
     }
     @PostMapping("/login")
@@ -71,7 +75,7 @@ public class ManagerResource {
             }
 
            Manager manager2= managerRepo.findByConfirmEmailAndPassword(email,manager1.getPassword());
-            System.out.println("Manager2:"+manager2);
+            LOGGER.info("Manager with this Email:"+email+" Logged In");
             return new ResponseEntity<>(generateJWTToken(manager2),HttpStatus.OK);
         }catch (EmptyResultDataAccessException e){
             throw new ManagerAuthException("Invalid email/password");
@@ -82,6 +86,7 @@ public class ManagerResource {
     @ApiOperation(value = "returns a list of all managers")
     public ResponseEntity<List<Manager>> getManagers(){
         List<Manager> managers=managerRepo.findAll();
+        LOGGER.info("Manager with Listing All Managers");
         return new ResponseEntity<>(managers,HttpStatus.OK);
     }
     @PostMapping("/reset/{email}")
@@ -97,6 +102,7 @@ public class ManagerResource {
         Map<String,String>map=new HashMap<>();
         triggerTheResetLink(email);
         map.put("message","reset Link was sent to your email");
+        LOGGER.info("Manager with this Email:"+email+"Request For Reset Password");
         return new ResponseEntity<>(map,HttpStatus.GONE);
 
     }
@@ -113,6 +119,7 @@ public class ManagerResource {
         if (manager1!=null)managerRepo.updateManagerPassword(hashedPassword,email);
         Map<String,String>map=new HashMap<>();
         map.put("message","password reseted");
+        LOGGER.info("Manager with this Email:"+email+"Password Was reseted ");
         return new ResponseEntity<>(map,HttpStatus.OK);
     }
 
