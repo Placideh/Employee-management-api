@@ -27,13 +27,6 @@ public class EmployeesManagementApiApplication {
 		return registrationBean;
 
 	}
-//	@EventListener(ApplicationReadyEvent.class)
-//	private void triggerTheEmailMsg(){
-//		service.sendCommunicationEmail(
-//				"h.uwizeyeplacide@gmail.com",
-//				"Welcome to Our Company you are respected ",
-//				"Welcome in Placideh Employees Company"
-//		);
-//	}
+
 
 }
