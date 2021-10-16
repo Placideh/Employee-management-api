@@ -54,4 +54,5 @@ public class RestResponseEntityException extends ResponseEntityExceptionHandler 
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(message);
     }
+
 }

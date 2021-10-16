@@ -8,7 +8,7 @@ import com.placideh.employees.mails.EmailSenderService;
 import com.placideh.employees.model.*;
 import com.placideh.employees.repository.EmployeeRepository;
 import com.placideh.employees.repository.ManagerRepository;
-import com.placideh.employees.upload.UploadFile;
+import com.placideh.employees.upload.UploadExcel;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.swagger.annotations.ApiOperation;
@@ -38,9 +38,6 @@ public class ManagerResource {
     private EmailSenderService service;
     private final Logger LOGGER= LoggerFactory.getLogger(ManagerResource.class);
     private static Map<String,String> errors;
-    @Autowired
-    private UploadFile uploadFile;
-
     @PostMapping("/register")
     @ApiOperation(value = "records a new Manager with Position of MANAGER")
     public ResponseEntity<Map<String,String>> registerManager(@RequestBody Manager manager)
@@ -137,8 +134,16 @@ public class ManagerResource {
     }
     @PostMapping("/upload")
     @ApiOperation(value = "Upload a list of Employees and sends back Email to each Employee registered")
-    public List<Map<String,String>>uploadEmployees(@RequestParam("file")MultipartFile file) throws Exception {
-        return uploadFile.upload(file);
+    public ResponseEntity<Map<String,String>> uploadEmployees(@RequestParam("file")MultipartFile file) throws Exception {
+        UploadExcel uploadExcel=new UploadExcel();
+        List<Employee>employees=uploadExcel.excel(file);
+        employeeRepo.saveAll(employees);
+        for(Employee employee:employees){
+            triggerTheEmailMsg(employee.getEmail());
+        }
+        Map<String,String>map=new HashMap<>();
+        map.put("message","Employees Uploaded");
+        return new ResponseEntity<>(map,HttpStatus.CREATED);
     }
 
 
@@ -243,6 +248,13 @@ public class ManagerResource {
         throw new EmployeeInputException("one or more fields contains an error");
 
 
+    }
+    private void triggerTheEmailMsg(String email){
+        service.sendCommunicationEmail(
+                email,
+                "Welcome to Our Company you are respected ",
+                "Welcome in Placideh Employees Company"
+        );
     }
 
 }
