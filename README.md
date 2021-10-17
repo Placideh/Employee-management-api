@@ -95,11 +95,66 @@ That's It 😎 simple then you have it as a _.jar_
 ___
 
 ## 😏View Integration Testing Coverage &rArr; 
+For Unit Test and Integration Since we are using Json Web tokens to access some protected 
+Apis you will need to have  passing  the token 
+but we won't do that instead comment that 
+code which are located in main class. 
+
+**_Comment Lines  From 112 Line to 122_**
+
+* then after test uncomment them
+```Java
+    @SpringBootApplication
+
+
+public class EmployeesManagementApiApplication {
+	@Autowired
+	private EmailSenderService service;
+	public static void main(String[] args) {
+		SpringApplication.run(EmployeesManagementApiApplication.class, args);
+	}
+    
+//	@Bean
+//	public FilterRegistrationBean<AuthFilter> filterRegistrationBean(){
+//		FilterRegistrationBean<AuthFilter> registrationBean=new FilterRegistrationBean<>();
+//		AuthFilter authFilter=new AuthFilter();
+//		registrationBean.setFilter(authFilter);
+//		registrationBean.addUrlPatterns("/api/employees/*");
+//		registrationBean.addUrlPatterns("/api/admins");
+//		return registrationBean;
+//
+//	}
+
+
+
+}
+
+```
+
 
 
 ___
 
 ## Ship The Application With Docker  🐋
+* By Shipping I have excluded in application.properties file
+        
+    * where by Send Email username and password you put yours :
+
+        * ```yml
+            spring.mail.username=youremail@test.com
+            spring.mail.password=yourpassowrd
+        ``` 
+        
+
+    * If Sending Email is not working while you putted your email credentials 
+
+        * GMAIL you need to enable to things in setting
+
+            * &rarr; Security &rarr; Turn-Off 2-Step Verification.
+            * Enable Less secure apps and your Google account
+            
+
+
 
 
 
